@@ -13,8 +13,8 @@ type Container struct {
 // running and what the type of this container is that
 // should be running.
 type DesiredState struct {
-	DesiredNum    uint32
-	ContainerType *Container
+	DesiredNum    int
+	ContainerType Container
 }
 
 // CurrentState represents the current state of the system,
@@ -22,8 +22,8 @@ type DesiredState struct {
 // running in the system and what the type of this contianer
 // is that is running.
 type CurrentState struct {
-	CurrentNum    uint32
-	ContainerType *Container
+	CurrentNum    int
+	ContainerType Container
 }
 
 // Diff represents a drift of the Current state of the system

@@ -90,3 +90,18 @@ func BootstrapHost(ctx context.Context, cli *client.Client, lb core.LoadBalancer
 
 	return resp.ID, nil
 }
+
+// GetCurrentState gets the current state of the system based on the common name prefix.
+func GetCurrentState(ctx context.Context, cli *client.Client, containterConfig core.Container) (*core.CurrentState, error) {
+	// TODO: actually implement the filters for the name
+	ctrs, err := cli.ContainerList(ctx, types.ContainerListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	currentState := &core.CurrentState{
+		CurrentNum:    len(ctrs),
+		ContainerType: containterConfig,
+	}
+	return currentState, nil
+}
