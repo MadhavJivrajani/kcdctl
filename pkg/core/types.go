@@ -1,12 +1,11 @@
 package core
 
-// Container represents a docker contianer
-// that would be spawned.
+// Container represents a docker contianer that would be spawned.
 type Container struct {
 	Name          string
 	Image         string
-	HostPort      uint32
-	ContainerPort uint32
+	HostPort      string
+	ContainerPort string
 }
 
 // DesiredState represents the desired state of the system,
@@ -25,4 +24,26 @@ type DesiredState struct {
 type CurrentState struct {
 	CurrentNum    uint32
 	ContainerType *Container
+}
+
+// Diff represents a drift of the Current state of the system
+// from the Desired state of the system.
+type Diff struct {
+	Current *CurrentState
+	Desired *DesiredState
+}
+
+// LoadBalancer represents the configuration of the loadbalancer
+// that will be created at the time of system bootsrapping.
+type LoadBalancer struct {
+	// Name given to the lb container.
+	Name string
+	// ExposedPort is the port that
+	// is exposed and available to
+	// users.
+	ExposedPort string
+	// TargetPort is the port that
+	// the load balancer will proxy
+	// requests to.
+	TargetPort string
 }
