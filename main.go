@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/core"
-	"github.com/MadhavJivrajani/kcd-bangalore/pkg/utils"
+	"github.com/MadhavJivrajani/kcd-bangalore/pkg/watcher"
 	"github.com/docker/docker/client"
 )
 
@@ -16,19 +16,20 @@ func main() {
 	}
 
 	ctx := context.Background()
-	netID, err := utils.BootstrapHost(ctx, cli)
-	if err != nil {
-		log.Fatal(err)
+
+	n := watcher.NewNotifier("kill", "stop")
+	ctr := core.Container{}
+	desired := &core.DesiredState{
+		DesiredNum:    2,
+		ContainerType: ctr,
 	}
 
-	container := core.Container{
-		Image:         "nginx",
-		Name:          "test-container",
-		HostPort:      "8080",
-		ContainerPort: "80/tcp",
-	}
-	err = utils.SpawnContainer(ctx, cli, container, netID)
-	if err != nil {
-		log.Fatal(err)
+	go n.Notify(ctx, cli, desired)
+
+	for {
+		select {
+		case diff := <-n.Notification:
+			log.Println(*diff.Current, *diff.Desired)
+		}
 	}
 }
