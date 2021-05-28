@@ -6,6 +6,7 @@ type Container struct {
 	Image         string
 	HostPort      string
 	ContainerPort string
+	Network       string
 }
 
 // DesiredState represents the desired state of the system,

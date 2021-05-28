@@ -2,6 +2,7 @@ package watcher
 
 import (
 	"context"
+	"time"
 
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/core"
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/utils"
@@ -32,8 +33,9 @@ func NewNotifier(eventsToBeRegistered ...string) *Notifier {
 }
 
 // Notify creates a diff object and sends it on the Notification channel
-func (n *Notifier) Notify(ctx context.Context, cli *client.Client, desired *core.DesiredState) error {
+func (n *Notifier) Notify(ctx context.Context, cli *client.Client, desired *core.DesiredState, check time.Duration) error {
 	feedback := NewFeedback(ctx, cli)
+	periodicChecker := time.NewTicker(check)
 
 	for {
 		select {
@@ -57,6 +59,24 @@ func (n *Notifier) Notify(ctx context.Context, cli *client.Client, desired *core
 
 			// send the notification
 			n.Notification <- diff
+			continue
+		// run a periodic check on system state
+		case <-periodicChecker.C:
+			// get the current state of the system
+			currentState, err := utils.GetCurrentState(ctx, cli, desired.ContainerType)
+			if err != nil {
+				return err
+			}
+
+			// create the diff object
+			diff := core.Diff{
+				Current: currentState,
+				Desired: desired,
+			}
+
+			// send the notification
+			n.Notification <- diff
+
 		case err := <-feedback.Errors:
 			return err
 		}

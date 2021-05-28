@@ -2,12 +2,10 @@ package utils
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/core"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 )
@@ -19,7 +17,7 @@ const (
 )
 
 // SpawnContainer creates a new container given the configuration for it
-func SpawnContainer(ctx context.Context, cli *client.Client, containterConfig core.Container, netID string) error {
+func SpawnContainer(ctx context.Context, cli *client.Client, containterConfig core.Container) error {
 	image := containterConfig.Image
 
 	// pull image
@@ -51,7 +49,7 @@ func SpawnContainer(ctx context.Context, cli *client.Client, containterConfig co
 		},
 		nil,
 		nil,
-		containterConfig.Name,
+		"",
 	)
 	if err != nil {
 		return err
@@ -64,7 +62,7 @@ func SpawnContainer(ctx context.Context, cli *client.Client, containterConfig co
 	}
 
 	// attach container to the network created on the docker host
-	err = cli.NetworkConnect(ctx, netID, resp.ID, nil)
+	err = cli.NetworkConnect(ctx, containterConfig.Network, resp.ID, nil)
 	return err
 }
 
@@ -84,8 +82,9 @@ func BootstrapHost(ctx context.Context, cli *client.Client, lb core.LoadBalancer
 		Name:          lb.Name,
 		ContainerPort: "80/tcp",
 		HostPort:      lb.ExposedPort,
+		Network:       resp.ID,
 	}
-	err = SpawnContainer(ctx, cli, nginx, resp.ID)
+	err = SpawnContainer(ctx, cli, nginx)
 	if err != nil {
 		return "", err
 	}
@@ -95,27 +94,19 @@ func BootstrapHost(ctx context.Context, cli *client.Client, lb core.LoadBalancer
 
 // GetCurrentState gets the current state of the system based on the common name prefix.
 func GetCurrentState(ctx context.Context, cli *client.Client, containterConfig core.Container) (*core.CurrentState, error) {
-	// containterConfig.Name is the prefix of
-	// all container names that run as part of
-	// this 'service', to filter based on these
-	// prefixes, add a filter with teh regex
-	// ^name*
-	listOpts := types.ContainerListOptions{
-		Filters: filters.NewArgs(
-			filters.KeyValuePair{
-				Key:   "name",
-				Value: fmt.Sprintf("^%s*", containterConfig.Name),
-			},
-		),
-	}
-	ctrs, err := cli.ContainerList(ctx, listOpts)
+	ctrs, err := cli.ContainerList(ctx, types.ContainerListOptions{})
 	if err != nil {
 		return nil, err
 	}
 
 	currentState := &core.CurrentState{
-		CurrentNum:    len(ctrs),
+		// len(ctrs) - 1 is to take
+		// care of the fact that one
+		// of the containers is the
+		// load balancer
+		CurrentNum:    len(ctrs) - 1,
 		ContainerType: containterConfig,
 	}
+
 	return currentState, nil
 }
