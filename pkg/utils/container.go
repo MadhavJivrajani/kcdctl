@@ -2,10 +2,12 @@ package utils
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/core"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 )
@@ -93,8 +95,20 @@ func BootstrapHost(ctx context.Context, cli *client.Client, lb core.LoadBalancer
 
 // GetCurrentState gets the current state of the system based on the common name prefix.
 func GetCurrentState(ctx context.Context, cli *client.Client, containterConfig core.Container) (*core.CurrentState, error) {
-	// TODO: actually implement the filters for the name
-	ctrs, err := cli.ContainerList(ctx, types.ContainerListOptions{})
+	// containterConfig.Name is the prefix of
+	// all container names that run as part of
+	// this 'service', to filter based on these
+	// prefixes, add a filter with teh regex
+	// ^name*
+	listOpts := types.ContainerListOptions{
+		Filters: filters.NewArgs(
+			filters.KeyValuePair{
+				Key:   "name",
+				Value: fmt.Sprintf("^%s*", containterConfig.Name),
+			},
+		),
+	}
+	ctrs, err := cli.ContainerList(ctx, listOpts)
 	if err != nil {
 		return nil, err
 	}
