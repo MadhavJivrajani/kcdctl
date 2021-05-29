@@ -38,13 +38,13 @@ type Diff struct {
 // that will be created at the time of system bootsrapping.
 type LoadBalancer struct {
 	// Name given to the lb container.
-	Name string
+	Name string `yaml:"name"`
 	// ExposedPort is the port that
 	// is exposed and available to
 	// users.
-	ExposedPort string
+	ExposedPort string `yaml:"exposedPort"`
 	// TargetPort is the port that
 	// the load balancer will proxy
 	// requests to.
-	TargetPort string
+	TargetPort string `yaml:"targetPort"`
 }

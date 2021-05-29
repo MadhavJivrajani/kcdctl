@@ -26,13 +26,9 @@ func SpawnContainer(ctx context.Context, cli *client.Client, containterConfig co
 		return err
 	}
 
-	// create the container
-	resp, err := cli.ContainerCreate(
-		ctx,
-		&container.Config{
-			Image: image,
-		},
-		&container.HostConfig{
+	var hostConfig *container.HostConfig
+	if containterConfig.HostPort != "" {
+		hostConfig = &container.HostConfig{
 			PortBindings: nat.PortMap{
 				nat.Port(containterConfig.ContainerPort): []nat.PortBinding{
 					{
@@ -46,7 +42,18 @@ func SpawnContainer(ctx context.Context, cli *client.Client, containterConfig co
 				},
 			},
 			AutoRemove: true,
+		}
+	}
+	// create the container
+	resp, err := cli.ContainerCreate(
+		ctx,
+		&container.Config{
+			Image: image,
+			Labels: map[string]string{
+				"configName": containterConfig.Name,
+			},
 		},
+		hostConfig,
 		nil,
 		nil,
 		"",

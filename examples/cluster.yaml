@@ -1,0 +1,9 @@
+loadBalancer:
+  name: "lb"
+  exposedPort: "8080"
+  targetPort: "8080"
+spec:
+  replicas: 3
+  template:
+    image: "maddyoii/kcd-blr-example:latest"
+    name: "kcd-bangalore-test"

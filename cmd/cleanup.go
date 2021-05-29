@@ -13,39 +13,132 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"log"
 
+	"github.com/MadhavJivrajani/kcd-bangalore/pkg/utils"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
 )
+
+const networkName = "kcd-bangalore-demo"
 
 // cleanupCmd represents the cleanup command
 var cleanupCmd = &cobra.Command{
 	Use:   "cleanup",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "cleanup removes all containers that were created as part of a given configuration file",
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("cleanup called")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		file, err := cmd.Flags().GetString("file")
+		if err != nil {
+			return err
+		}
+		if file == "" {
+			return fmt.Errorf("no config file passed! please pass one :(")
+		}
+		config, err := utils.ReadConfig(file)
+		if err != nil {
+			return err
+		}
+
+		err = cleanup(config)
+		return err
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(cleanupCmd)
 
-	// Here you will define your flags and configuration settings.
+	cleanupCmd.Flags().StringP(
+		"file",
+		"f",
+		"",
+		"file is the yaml configuarion file using which containers will be cleaned up",
+	)
+}
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// cleanupCmd.PersistentFlags().String("foo", "", "A help for foo")
+func stopContainersByLabel(ctx context.Context, cli *client.Client, label string) error {
+	listOpts := types.ContainerListOptions{
+		Filters: filters.NewArgs(
+			filters.KeyValuePair{
+				Key:   "label",
+				Value: fmt.Sprintf("configName=%s", label),
+			},
+		),
+	}
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// cleanupCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	containers, err := cli.ContainerList(ctx, listOpts)
+	if err != nil {
+		return err
+	}
+
+	// stop containers
+	for _, ctr := range containers {
+		err := cli.ContainerStop(ctx, ctr.ID, nil)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func removeNetworkByLabel(ctx context.Context, cli *client.Client, label string) error {
+	listOpts := types.NetworkListOptions{
+		Filters: filters.NewArgs(
+			filters.KeyValuePair{
+				Key:   "name",
+				Value: label,
+			},
+		),
+	}
+
+	networks, err := cli.NetworkList(ctx, listOpts)
+	if err != nil {
+		return err
+	}
+	for _, network := range networks {
+		err := cli.NetworkRemove(ctx, network.ID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func cleanup(config utils.Config) error {
+	cli, err := client.NewEnvClient()
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+
+	// remove containers running the application
+	log.Println("Cleaning up containers running application...")
+	err = stopContainersByLabel(ctx, cli, config.Spec.Template.Name)
+	if err != nil {
+		return err
+	}
+
+	// remove the load balancer
+	log.Println("Cleaning up load balancer container...")
+	err = stopContainersByLabel(ctx, cli, config.LoadBalancer.Name)
+	if err != nil {
+		return err
+	}
+
+	// cleaning up network
+	log.Println("Cleaning up network created...")
+	err = removeNetworkByLabel(ctx, cli, networkName)
+
+	return err
 }
