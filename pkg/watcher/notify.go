@@ -44,10 +44,6 @@ func (n *Notifier) Notify(ctx context.Context, cli *client.Client, desired *core
 				continue
 			}
 
-			// err := n.constructDiffAndSend(ctx, cli, desired)
-			// if err != nil {
-			//	return err
-			// }
 			n.Notification <- event.Action
 		case err := <-feedback.Errors:
 			return err
