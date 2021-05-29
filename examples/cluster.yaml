@@ -1,6 +1,8 @@
 loadBalancer:
+  image: "maddyoii/lb:test"
   name: "lb"
-  exposedPort: "8080"
+  exposedPort: "9090"
+  containerPort: "8080"
   targetPort: "8080"
 spec:
   replicas: 3

@@ -37,12 +37,20 @@ type Diff struct {
 // LoadBalancer represents the configuration of the loadbalancer
 // that will be created at the time of system bootsrapping.
 type LoadBalancer struct {
+	// Image is the image from which
+	// the load balancer container will
+	// be spawned.
+	Image string `yaml:"image"`
 	// Name given to the lb container.
 	Name string `yaml:"name"`
 	// ExposedPort is the port that
 	// is exposed and available to
 	// users.
 	ExposedPort string `yaml:"exposedPort"`
+	// ContainerPort is the port that
+	// the ExposedPort will be mapped
+	// to.
+	ContainerPort string `yaml:"containerPort"`
 	// TargetPort is the port that
 	// the load balancer will proxy
 	// requests to.

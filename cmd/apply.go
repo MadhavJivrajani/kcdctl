@@ -99,7 +99,7 @@ func startDeclarativeSystem(config utils.Config) error {
 
 	// bootstrapping host
 	log.Println("Bootstrapping host...")
-	netID, err := utils.BootstrapHost(ctx, cli, config.LoadBalancer)
+	netID, err := utils.BootstrapHost(ctx, cli, config)
 	if err != nil {
 		return err
 	}
