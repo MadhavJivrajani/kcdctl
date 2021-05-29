@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"log"
-	"time"
 
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/controller"
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/core"
@@ -37,7 +36,7 @@ func main() {
 		ContainerPort: "80",
 		Network:       netID,
 	}
-	events := []string{"kill", "stop", "die"}
+	events := []string{"kill", "stop", "die", "destroy"}
 	desiredState := &core.DesiredState{
 		DesiredNum:    2,
 		ContainerType: container,
@@ -45,8 +44,7 @@ func main() {
 
 	log.Println("Desired state:", desiredState.DesiredNum)
 	log.Println("Starting controller...")
-	checkDuration := 1 * time.Second
-	err = controller.Controller(ctx, cli, events, desiredState, checkDuration)
+	err = controller.Controller(ctx, cli, events, desiredState)
 	if err != nil {
 		log.Fatal(err)
 	}

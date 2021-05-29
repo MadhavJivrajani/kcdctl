@@ -3,10 +3,10 @@ package controller
 import (
 	"context"
 	"log"
-	"time"
 
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/core"
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/utils"
+	"github.com/MadhavJivrajani/kcd-bangalore/pkg/watcher"
 	"github.com/docker/docker/client"
 )
 
@@ -37,19 +37,31 @@ func Processor(ctx context.Context, cli *client.Client, currentState *core.Curre
 
 // Controller is the controller implementing a control loop and invoking the
 // Processor to reconcile the current state and the desired state
-func Controller(ctx context.Context, cli *client.Client, eventsToRegister []string, desiredState *core.DesiredState, check time.Duration) error {
+func Controller(ctx context.Context, cli *client.Client, eventsToRegister []string, desiredState *core.DesiredState) error {
+	// create a notifier that registers events, on whose
+	// occurence, notifications are sent
+	notifier := watcher.NewNotifier(eventsToRegister...)
+
+	// start the notification watch
+	go notifier.Notify(ctx, cli, desiredState)
+
 	// control loop
 	for {
-		currentState, err := utils.GetCurrentState(ctx, cli, desiredState.ContainerType)
-		if err != nil {
-			return err
+		select {
+		case <-notifier.Notification:
+			// get the current state of the system
+			currentState, err := utils.GetCurrentState(ctx, cli, desiredState.ContainerType)
+			if err != nil {
+				return err
+			}
+
+			// invoke the Processor to reconcile the current and
+			// desired state of the system in case of a drift in
+			// the state of the system
+			err = Processor(ctx, cli, currentState, desiredState)
+			if err != nil {
+				return err
+			}
 		}
-		// invoke the Processor to try and reconcile current and
-		// desired state
-		err = Processor(ctx, cli, currentState, desiredState)
-		if err != nil {
-			return err
-		}
-		time.Sleep(check)
 	}
 }
