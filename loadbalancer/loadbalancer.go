@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	exposedPort          string
+	containerPort        string
 	targetPort           string
 	serviceSelector      string
 	serviceSelectorValue string
@@ -48,6 +48,8 @@ func discoverServices() ([]string, error) {
 	for _, service := range services {
 		ipOfServices = append(ipOfServices, service.NetworkSettings.Networks[networkName].IPAddress)
 	}
+
+	log.Println(ipOfServices)
 
 	return ipOfServices, nil
 }
@@ -81,14 +83,17 @@ func serve(w http.ResponseWriter, req *http.Request) {
 
 func startLoadBalancer() {
 	http.HandleFunc("/", serve)
-	log.Fatal(http.ListenAndServe(":"+exposedPort, nil))
+	log.Println("lisening on port:", containerPort)
+	log.Fatal(http.ListenAndServe(":"+containerPort, nil))
 }
 
 func main() {
-	exposedPort = os.Getenv("exposedPort")
+	containerPort = os.Getenv("containerPort")
 	targetPort = os.Getenv("targetPort")
 	serviceSelector = os.Getenv("serviceSelector")
 	serviceSelectorValue = os.Getenv("serviceSelectorValue")
+
+	log.Println(containerPort, targetPort, serviceSelector, serviceSelectorValue)
 
 	startLoadBalancer()
 }

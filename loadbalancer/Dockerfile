@@ -1,17 +1,16 @@
-# FROM golang:alpine 
-FROM scratch
+FROM golang:alpine 
 
 MAINTAINER Madhav Jivrajani <madhav.jiv@gmail.com>
 
-# ADD . /src
-# WORKDIR /src
-# RUN go build -o lb loadbalancer.go
-ADD lb lb
-ENV exposedPort=9000
+ADD . /src
+WORKDIR /src
+RUN go build -o lb loadbalancer.go
+
+ENV containerPort=8080
 ENV targetPort=8080
-EXPOSE $exposedPort
+EXPOSE $containerPort
 
 ENV serviceSelector=""
 ENV serviceSelectorValue=""
 
-ENTRYPOINT ["/lb"]
+ENTRYPOINT ["./lb"]

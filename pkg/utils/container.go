@@ -60,10 +60,13 @@ func spawnLoadBalancer(ctx context.Context, cli *client.Client, config Config, n
 				"configName": config.LoadBalancer.Name,
 			},
 			Env: []string{
-				fmt.Sprintf("exposedPort=%s", config.LoadBalancer.ExposedPort),
+				fmt.Sprintf("containerPort=%s", config.LoadBalancer.ContainerPort),
 				fmt.Sprintf("targetPort=%s", config.LoadBalancer.TargetPort),
 				fmt.Sprintf("serviceSelector=configName"),
 				fmt.Sprintf("serviceSelectorValue=%s", config.Spec.Template.Name),
+			},
+			ExposedPorts: nat.PortSet{
+				nat.Port(fmt.Sprintf("%s/tcp", config.LoadBalancer.ContainerPort)): struct{}{},
 			},
 		},
 		hostConfig,
