@@ -10,13 +10,16 @@ import (
 	"github.com/docker/docker/client"
 )
 
-// Processor decides an action to take place based on the current state
+// The processor decides an action to take place based on the current state
 // of the system and the desired state of the system
-func Processor(ctx context.Context, cli *client.Client, currentState *core.CurrentState, desiredState *core.DesiredState) error {
+func processor(ctx context.Context, cli *client.Client, currentState *core.CurrentState, desiredState *core.DesiredState) error {
 	currentNum := currentState.CurrentNum
 	desiredNum := desiredState.DesiredNum
 
 	delta := desiredNum - currentNum
+	// TODO: handle the case when the number
+	// of replicas is greater than the desired
+	// state.
 	if delta == 0 {
 		return nil
 	}
@@ -55,10 +58,10 @@ func Controller(ctx context.Context, cli *client.Client, eventsToRegister []stri
 				return err
 			}
 
-			// invoke the Processor to reconcile the current and
+			// invoke the processor to reconcile the current and
 			// desired state of the system in case of a drift in
-			// the state of the system
-			err = Processor(ctx, cli, currentState, desiredState)
+			// the state of the system.
+			err = processor(ctx, cli, currentState, desiredState)
 			if err != nil {
 				return err
 			}
