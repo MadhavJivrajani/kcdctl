@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/controller"
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/core"
@@ -124,8 +125,10 @@ func startDeclarativeSystem(config utils.Config) error {
 
 	log.Println("Desired number of replicas:", desiredState.DesiredNum)
 	log.Println("Starting controller...")
+
+	check := time.Millisecond * 1500
 	// start the controller
-	err = controller.Controller(ctx, cli, events, desiredState)
+	err = controller.Controller(ctx, cli, events, desiredState, check)
 
 	return err
 }

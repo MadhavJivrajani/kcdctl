@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/core"
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/utils"
@@ -40,13 +41,13 @@ func processor(ctx context.Context, cli *client.Client, currentState *core.Curre
 
 // Controller is the controller implementing a control loop and invoking the
 // Processor to reconcile the current state and the desired state
-func Controller(ctx context.Context, cli *client.Client, eventsToRegister []string, desiredState *core.DesiredState) error {
+func Controller(ctx context.Context, cli *client.Client, eventsToRegister []string, desiredState *core.DesiredState, check time.Duration) error {
 	// create a notifier that registers events, on whose
 	// occurence, notifications are sent
 	notifier := watcher.NewNotifier(eventsToRegister...)
 
 	// start the notification watch
-	go notifier.Notify(ctx, cli, desiredState)
+	go notifier.Notify(ctx, cli, desiredState, check)
 
 	// control loop
 	for {

@@ -2,10 +2,13 @@ package watcher
 
 import (
 	"context"
+	"time"
 
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/core"
 	"github.com/docker/docker/client"
 )
+
+const checkEvent = "check"
 
 // Notifier sends a notification which is
 // in the form of the event that occured
@@ -31,9 +34,11 @@ func NewNotifier(eventsToBeRegistered ...string) *Notifier {
 }
 
 // Notify creates a diff object and sends it on the Notification channel
-func (n *Notifier) Notify(ctx context.Context, cli *client.Client, desired *core.DesiredState) error {
-	// do an initial check and then do checks on occurence of events
-	n.Notification <- "init"
+func (n *Notifier) Notify(ctx context.Context, cli *client.Client, desired *core.DesiredState, check time.Duration) error {
+	// Create a periodic check in case events either miss or the
+	// state checked in the controller does not accurately represent
+	// the change in state of the system.
+	periodicChecker := time.NewTicker(check)
 
 	feedback := NewFeedback(ctx, cli)
 	for {
@@ -47,6 +52,8 @@ func (n *Notifier) Notify(ctx context.Context, cli *client.Client, desired *core
 			n.Notification <- event.Action
 		case err := <-feedback.Errors:
 			return err
+		case <-periodicChecker.C:
+			n.Notification <- checkEvent
 		}
 	}
 }
