@@ -22,8 +22,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/MadhavJivrajani/kcd-bangalore/pkg/controller"
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/core"
+	"github.com/MadhavJivrajani/kcd-bangalore/pkg/declarative"
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/utils"
 	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
@@ -128,7 +128,7 @@ func startDeclarativeSystem(config utils.Config) error {
 
 	check := time.Millisecond * 1500
 	// start the controller
-	err = controller.Controller(ctx, cli, events, desiredState, check)
+	err = declarative.Controller(ctx, cli, events, desiredState, check)
 
 	return err
 }

@@ -1,4 +1,4 @@
-package watcher
+package notifier
 
 import (
 	"context"
@@ -8,19 +8,19 @@ import (
 	"github.com/docker/docker/client"
 )
 
-// Feedback watches the state of the system
+// feedback watches the state of the system
 // and lists events generated on change in
 // system state
-type Feedback struct {
+type feedback struct {
 	Events <-chan events.Message
 	Errors <-chan error
 }
 
-// NewFeedback is a constructor for the Feedback type
-func NewFeedback(ctx context.Context, cli *client.Client) *Feedback {
+// newFeedback is a constructor for the feedback type
+func newFeedback(ctx context.Context, cli *client.Client) *feedback {
 	events, errs := cli.Events(ctx, types.EventsOptions{})
 
-	return &Feedback{
+	return &feedback{
 		events,
 		errs,
 	}

@@ -1,4 +1,4 @@
-package watcher
+package notifier
 
 import (
 	"context"
@@ -40,7 +40,7 @@ func (n *Notifier) Notify(ctx context.Context, cli *client.Client, desired *core
 	// the change in state of the system.
 	periodicChecker := time.NewTicker(check)
 
-	feedback := NewFeedback(ctx, cli)
+	feedback := newFeedback(ctx, cli)
 	for {
 		select {
 		case event := <-feedback.Events:
