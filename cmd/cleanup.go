@@ -20,7 +20,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"sync"
 
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/utils"
 	"github.com/docker/docker/api/types"
@@ -80,15 +79,11 @@ func stopContainersByLabel(ctx context.Context, cli *client.Client, label string
 		return err
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(len(containers))
-
-	errChan := make(chan error)
+	errChan := make(chan error, len(containers))
 
 	// stop containers
 	for _, ctr := range containers {
 		go func(ctr types.Container) {
-			defer wg.Done()
 			err := cli.ContainerStop(ctx, ctr.ID, nil)
 			errChan <- err
 		}(ctr)

@@ -20,10 +20,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/core"
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/declarative"
+	"github.com/MadhavJivrajani/kcd-bangalore/pkg/imperative"
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/utils"
 	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
@@ -64,6 +66,11 @@ var applyCmd = &cobra.Command{
 
 		if mode == declarativeMode {
 			err = startDeclarativeSystem(config)
+			if err != nil {
+				return err
+			}
+		} else {
+			err = startImperativeSystem(config)
 			if err != nil {
 				return err
 			}
@@ -131,4 +138,54 @@ func startDeclarativeSystem(config utils.Config) error {
 	err = declarative.Controller(ctx, cli, events, desiredState, check)
 
 	return err
+}
+
+func startImperativeSystem(config utils.Config) error {
+	cli, err := client.NewEnvClient()
+	if err != nil {
+		return err
+	}
+	ctx := context.Background()
+
+	// bootstrapping host
+	log.Println("Bootstrapping host...")
+	netID, err := utils.BootstrapHost(ctx, cli, config)
+	if err != nil {
+		return err
+	}
+	log.Println("Bootstrap successful")
+
+	// form the container type based on the config
+	container := core.Container{
+		Name:    config.Spec.Template.Name,
+		Image:   config.Spec.Template.Image,
+		Network: netID,
+	}
+
+	// events to potentially respond to
+	events := []string{"kill", "stop", "die", "destroy"}
+
+	// desired state that the user wants the system
+	// to be in
+	desiredState := &core.DesiredState{
+		DesiredNum:    config.Spec.Replicas,
+		ContainerType: container,
+	}
+
+	log.Println("Desired number of replicas:", desiredState.DesiredNum)
+
+	check := time.Millisecond * 1500
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	// start the processor
+	go imperative.Processor(ctx, cli, desiredState, &wg)
+
+	// start observing system state
+	go imperative.StartObserving(ctx, cli, events, desiredState, check, &wg)
+
+	wg.Wait()
+	return err
+
 }

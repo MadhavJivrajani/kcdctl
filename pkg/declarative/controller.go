@@ -3,7 +3,6 @@ package declarative
 import (
 	"context"
 	"log"
-	"sync"
 	"time"
 
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/core"
@@ -40,13 +39,10 @@ func generateCommand(ctx context.Context, cli *client.Client, delta, cmnd int, c
 
 func (cmd commandWithSomeOtherStuff) spawnFunction() error {
 	log.Println("Calculated diff:", cmd.delta)
-	var wg sync.WaitGroup
-	wg.Add(cmd.delta)
-	errChan := make(chan error)
+	errChan := make(chan error, cmd.delta)
 
 	for i := 0; i < cmd.delta; i++ {
 		go func() {
-			defer wg.Done()
 			log.Println("Spawning container...")
 			err := utils.SpawnContainer(*cmd.ctx, cmd.cli, cmd.container)
 			if err != nil {
