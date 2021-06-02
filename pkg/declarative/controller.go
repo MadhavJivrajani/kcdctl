@@ -19,6 +19,10 @@ const (
 	spawn = iota
 )
 
+// command represents a command that the controller
+// passes to the processor to execute.
+type command func() error
+
 type commandWithSomeOtherStuff struct {
 	ctx       *context.Context
 	cli       *client.Client
@@ -67,15 +71,12 @@ func (cmd commandWithSomeOtherStuff) spawnFunction() error {
 
 // The processor executes the command provided
 // by the controller.
-func processor(command commandWithSomeOtherStuff) error {
+func processor(cmd command) error {
 	log.Println("System in state drift, attempting reconcile")
 
-	switch command.command {
-	case spawn:
-		err := command.spawnFunction()
-		if err != nil {
-			return err
-		}
+	err := cmd()
+	if err != nil {
+		return err
 	}
 
 	log.Println("State reconciled")
@@ -112,7 +113,7 @@ func Controller(ctx context.Context, cli *client.Client, eventsToRegister []stri
 
 			// invoke the processor with the the command that will
 			// help reconcil current and desired state.
-			err = processor(command)
+			err = processor(command.spawnFunction)
 			if err != nil {
 				return err
 			}
