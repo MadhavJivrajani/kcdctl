@@ -55,6 +55,7 @@ func discoverServices() ([]string, error) {
 }
 
 func proxyAndRespond(w http.ResponseWriter, req *http.Request, toSendTo string) {
+	// proxy request to the chosen service.
 	resp, err := http.Get(fmt.Sprintf("http://%s:%s", toSendTo, targetPort))
 	if err != nil {
 		log.Fatal(err)
@@ -65,6 +66,7 @@ func proxyAndRespond(w http.ResponseWriter, req *http.Request, toSendTo string) 
 		log.Fatal(err)
 	}
 
+	// send response back to client.
 	fmt.Fprintf(w, string(body))
 }
 
