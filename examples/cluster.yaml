@@ -1,5 +1,5 @@
 loadBalancer:
-  image: "maddyoii/kcd-loadbalancer"
+  image: "maddyoii/kcd-loadbalancer:latest"
   name: "lb"
   exposedPort: "9090"
   containerPort: "8080"

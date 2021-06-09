@@ -4,46 +4,91 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
-	"sync"
 
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/core"
 	"github.com/MadhavJivrajani/kcd-bangalore/pkg/utils"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 )
 
-const processorPort = "9000"
+const networkName = "kcd-bangalore-demo"
 
-var (
-	ctx          context.Context
-	cli          *client.Client
-	desiredState *core.DesiredState
-)
+type Command struct {
+	Config utils.Config
+	Diff   int
+}
 
-func spawn(w http.ResponseWriter, req *http.Request) {
-	log.Println("Spawning container...")
-	err := utils.SpawnContainer(ctx, cli, desiredState.ContainerType)
+func (cmd Command) Spawn() error {
+	return spawnDiff(cmd.Config, cmd.Diff)
+}
+
+type toExecute func() error
+
+func Processor(cmd toExecute) error {
+	err := cmd()
+	return err
+}
+
+func spawnDiff(config utils.Config, diff int) error {
+	ctx := context.Background()
+	cli, err := client.NewEnvClient()
 	if err != nil {
-		fmt.Fprintf(w, "error spawning container %v\n", err)
-		return
+		return err
 	}
-	fmt.Fprintf(w, "spawn successful!\n")
-	log.Println("Spawn successful...")
+	netID, err := getNetworkID(ctx, cli)
+	if err != nil {
+		return err
+	}
+
+	log.Println("Recieved diff:", diff)
+	// form the container type based on the config
+	container := core.Container{
+		Name:    config.Spec.Template.Name,
+		Image:   config.Spec.Template.Image,
+		Network: netID,
+	}
+	errChan := make(chan error, diff)
+
+	// spawn diff containers
+	for i := 0; i < diff; i++ {
+		go func() {
+			log.Println("Spawning container...")
+			err := utils.SpawnContainer(ctx, cli, container)
+			if err != nil {
+				errChan <- err
+				return
+			}
+			errChan <- nil
+			log.Println("Spawn successful...")
+		}()
+	}
+
+	for i := 0; i < diff; i++ {
+		err := <-errChan
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-func help(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(w, "Welcome!\nAvailable endpoints are: /spawn\n")
-}
+func getNetworkID(ctx context.Context, cli *client.Client) (string, error) {
+	listOpts := types.NetworkListOptions{
+		Filters: filters.NewArgs(
+			filters.KeyValuePair{
+				Key:   "name",
+				Value: networkName,
+			},
+		),
+	}
 
-// Processor takes action based on the command issued by the user.
-func Processor(_ctx context.Context, _cli *client.Client, _desiredState *core.DesiredState, wg *sync.WaitGroup) {
-	defer wg.Done()
-
-	ctx = _ctx
-	cli = _cli
-	desiredState = _desiredState
-	http.HandleFunc("/", help)
-	http.HandleFunc("/spawn", spawn)
-	log.Println("Listening on port:", processorPort)
-	log.Fatal(http.ListenAndServe(":"+processorPort, nil))
+	networks, err := cli.NetworkList(ctx, listOpts)
+	if err != nil {
+		return "", err
+	}
+	if len(networks) == 0 {
+		return "", fmt.Errorf("no networks with name %s exist", networkName)
+	}
+	return networks[0].ID, nil
 }

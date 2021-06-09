@@ -177,10 +177,7 @@ func startImperativeSystem(config utils.Config) error {
 	check := time.Millisecond * 1500
 
 	var wg sync.WaitGroup
-	wg.Add(2)
-
-	// start the processor
-	go imperative.Processor(ctx, cli, desiredState, &wg)
+	wg.Add(1)
 
 	// start observing system state
 	go imperative.StartObserving(ctx, cli, events, desiredState, check, &wg)

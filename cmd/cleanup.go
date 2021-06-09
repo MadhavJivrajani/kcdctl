@@ -90,11 +90,9 @@ func stopContainersByLabel(ctx context.Context, cli *client.Client, label string
 	}
 
 	for i := 0; i < len(containers); i++ {
-		select {
-		case err := <-errChan:
-			if err != nil {
-				return err
-			}
+		err := <-errChan
+		if err != nil {
+			return err
 		}
 	}
 

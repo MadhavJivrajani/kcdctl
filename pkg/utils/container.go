@@ -15,7 +15,6 @@ import (
 const (
 	networkName = "kcd-bangalore-demo"
 	ipv4HostIP  = "0.0.0.0"
-	ipv6HostIP  = "::"
 )
 
 func spawnLoadBalancer(ctx context.Context, cli *client.Client, config Config, netID string) error {
@@ -32,10 +31,6 @@ func spawnLoadBalancer(ctx context.Context, cli *client.Client, config Config, n
 			nat.Port(fmt.Sprintf("%s/tcp", config.LoadBalancer.ContainerPort)): []nat.PortBinding{
 				{
 					HostIP:   ipv4HostIP,
-					HostPort: config.LoadBalancer.ExposedPort,
-				},
-				{
-					HostIP:   ipv6HostIP,
 					HostPort: config.LoadBalancer.ExposedPort,
 				},
 			},
@@ -62,7 +57,7 @@ func spawnLoadBalancer(ctx context.Context, cli *client.Client, config Config, n
 			Env: []string{
 				fmt.Sprintf("containerPort=%s", config.LoadBalancer.ContainerPort),
 				fmt.Sprintf("targetPort=%s", config.LoadBalancer.TargetPort),
-				fmt.Sprintf("serviceSelector=configName"),
+				"serviceSelector=configName",
 				fmt.Sprintf("serviceSelectorValue=%s", config.Spec.Template.Name),
 			},
 			ExposedPorts: nat.PortSet{
@@ -99,23 +94,8 @@ func SpawnContainer(ctx context.Context, cli *client.Client, containterConfig co
 		return err
 	}
 
-	var hostConfig *container.HostConfig
-	if containterConfig.HostPort != "" {
-		hostConfig = &container.HostConfig{
-			PortBindings: nat.PortMap{
-				nat.Port(containterConfig.ContainerPort): []nat.PortBinding{
-					{
-						HostIP:   ipv4HostIP,
-						HostPort: containterConfig.HostPort,
-					},
-					{
-						HostIP:   ipv6HostIP,
-						HostPort: containterConfig.HostPort,
-					},
-				},
-			},
-			AutoRemove: true,
-		}
+	hostConfig := &container.HostConfig{
+		AutoRemove: true,
 	}
 
 	// create the container

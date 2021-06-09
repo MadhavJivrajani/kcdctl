@@ -59,11 +59,9 @@ func (cmd commandWithSomeOtherStuff) spawnFunction() error {
 	}
 
 	for i := 0; i < cmd.delta; i++ {
-		select {
-		case err := <-errChan:
-			if err != nil {
-				return err
-			}
+		err := <-errChan
+		if err != nil {
+			return err
 		}
 	}
 	return nil
@@ -95,28 +93,26 @@ func Controller(ctx context.Context, cli *client.Client, eventsToRegister []stri
 
 	// control loop
 	for {
-		select {
-		case <-notifier.Notification:
-			// get the current state of the system
-			currentState, err := utils.GetCurrentState(ctx, cli, desiredState.ContainerType)
-			if err != nil {
-				return err
-			}
+		<-notifier.Notification
+		// get the current state of the system
+		currentState, err := utils.GetCurrentState(ctx, cli, desiredState.ContainerType)
+		if err != nil {
+			return err
+		}
 
-			delta := desiredState.DesiredNum - currentState.CurrentNum
-			// TODO: implement excess container deletion
-			if delta <= 0 {
-				continue
-			}
+		delta := desiredState.DesiredNum - currentState.CurrentNum
+		// TODO: implement excess container deletion
+		if delta <= 0 {
+			continue
+		}
 
-			command := generateCommand(ctx, cli, delta, spawn, desiredState.ContainerType)
+		command := generateCommand(ctx, cli, delta, spawn, desiredState.ContainerType)
 
-			// invoke the processor with the the command that will
-			// help reconcil current and desired state.
-			err = processor(command.spawnFunction)
-			if err != nil {
-				return err
-			}
+		// invoke the processor with the the command that will
+		// help reconcil current and desired state.
+		err = processor(command.spawnFunction)
+		if err != nil {
+			return err
 		}
 	}
 }

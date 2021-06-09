@@ -22,18 +22,24 @@ func StartObserving(ctx context.Context, cli *client.Client, eventsToRegister []
 	// start the notification watch
 	go notifier.Notify(ctx, cli, desired, check)
 
+	var reconciled bool
 	for {
-		select {
-		case event := <-notifier.Notification:
+		event := <-notifier.Notification
+		if event != "check" {
 			log.Println("Event recieved:", event)
-			currentState, err := utils.GetCurrentState(ctx, cli, desired.ContainerType)
-			if err != nil {
-				return err
-			}
-			diff := desired.DesiredNum - currentState.CurrentNum
+		}
+		currentState, err := utils.GetCurrentState(ctx, cli, desired.ContainerType)
+		if err != nil {
+			return err
+		}
+		diff := desired.DesiredNum - currentState.CurrentNum
+		if diff != 0 {
 			log.Println("Current diff in terms of replicas:", diff)
-			if diff != 0 {
-				log.Println("Awaiting reconcilitation...")
+			log.Println("Awaiting reconcilitation...")
+		} else {
+			if !reconciled {
+				reconciled = !reconciled
+				log.Println("State reconciled")
 			}
 		}
 	}
