@@ -53,7 +53,7 @@ var spawnCmd = &cobra.Command{
 			Diff:   diff,
 		}
 
-		err = imperative.Processor(command.Spawn)
+		err = imperative.Machine(command.Spawn)
 		return err
 	},
 }

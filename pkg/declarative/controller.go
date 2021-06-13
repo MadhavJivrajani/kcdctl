@@ -27,16 +27,52 @@ import (
 	"github.com/docker/docker/client"
 )
 
-// set of possible actions for the processor
+// set of possible actions for the machine
 const (
 	// the spawn action indicates to the
-	// processor to spawn a new container
+	// machine to spawn a new container
 	// based on the provided configuration.
 	spawn = iota
 )
 
+// Controller is the controller implementing a control loop and invoking the
+// machine to reconcile the current state and the desired state
+func Controller(ctx context.Context, cli *client.Client, eventsToRegister []string, desiredState *core.DesiredState, check time.Duration) error {
+	// create a notifier that registers events, on whose
+	// occurence, notifications are sent
+	notifier := notifier.NewNotifier(eventsToRegister...)
+
+	// start the notification watch
+	go notifier.Notify(ctx, cli, desiredState, check)
+
+	// control loop
+	for {
+		<-notifier.Notification
+		// get the current state of the system
+		currentState, err := utils.GetCurrentState(ctx, cli, desiredState.ContainerType)
+		if err != nil {
+			return err
+		}
+
+		delta := desiredState.DesiredNum - currentState.CurrentNum
+		// TODO: implement excess container deletion
+		if delta <= 0 {
+			continue
+		}
+
+		command := generateCommand(ctx, cli, delta, spawn, desiredState.ContainerType)
+
+		// invoke the machine with the the command that will
+		// help reconcil current and desired state.
+		err = machine(command.spawnFunction)
+		if err != nil {
+			return err
+		}
+	}
+}
+
 // command represents a command that the controller
-// passes to the processor to execute.
+// passes to the machine to execute.
 type command func() error
 
 type commandWithSomeOtherStuff struct {
@@ -83,9 +119,9 @@ func (cmd commandWithSomeOtherStuff) spawnFunction() error {
 	return nil
 }
 
-// The processor executes the command provided
+// The machine executes the command provided
 // by the controller.
-func processor(cmd command) error {
+func machine(cmd command) error {
 	log.Println("System in state drift, attempting reconcile")
 
 	err := cmd()
@@ -95,40 +131,4 @@ func processor(cmd command) error {
 
 	log.Println("State reconciled")
 	return nil
-}
-
-// Controller is the controller implementing a control loop and invoking the
-// Processor to reconcile the current state and the desired state
-func Controller(ctx context.Context, cli *client.Client, eventsToRegister []string, desiredState *core.DesiredState, check time.Duration) error {
-	// create a notifier that registers events, on whose
-	// occurence, notifications are sent
-	notifier := notifier.NewNotifier(eventsToRegister...)
-
-	// start the notification watch
-	go notifier.Notify(ctx, cli, desiredState, check)
-
-	// control loop
-	for {
-		<-notifier.Notification
-		// get the current state of the system
-		currentState, err := utils.GetCurrentState(ctx, cli, desiredState.ContainerType)
-		if err != nil {
-			return err
-		}
-
-		delta := desiredState.DesiredNum - currentState.CurrentNum
-		// TODO: implement excess container deletion
-		if delta <= 0 {
-			continue
-		}
-
-		command := generateCommand(ctx, cli, delta, spawn, desiredState.ContainerType)
-
-		// invoke the processor with the the command that will
-		// help reconcil current and desired state.
-		err = processor(command.spawnFunction)
-		if err != nil {
-			return err
-		}
-	}
 }

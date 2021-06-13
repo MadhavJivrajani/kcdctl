@@ -41,7 +41,7 @@ func (cmd Command) Spawn() error {
 
 type toExecute func() error
 
-func Processor(cmd toExecute) error {
+func Machine(cmd toExecute) error {
 	err := cmd()
 	return err
 }
