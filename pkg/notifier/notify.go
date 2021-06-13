@@ -20,7 +20,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/MadhavJivrajani/kcd-bangalore/pkg/core"
+	"github.com/MadhavJivrajani/kcdctl/pkg/core"
 	"github.com/docker/docker/client"
 )
 

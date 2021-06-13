@@ -19,7 +19,7 @@ package utils
 import (
 	"os"
 
-	"github.com/MadhavJivrajani/kcd-bangalore/pkg/core"
+	"github.com/MadhavJivrajani/kcdctl/pkg/core"
 	"gopkg.in/yaml.v2"
 )
 

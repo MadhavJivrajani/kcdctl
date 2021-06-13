@@ -21,8 +21,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/MadhavJivrajani/kcd-bangalore/pkg/core"
-	"github.com/MadhavJivrajani/kcd-bangalore/pkg/utils"
+	"github.com/MadhavJivrajani/kcdctl/pkg/core"
+	"github.com/MadhavJivrajani/kcdctl/pkg/utils"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"

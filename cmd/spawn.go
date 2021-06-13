@@ -19,8 +19,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/MadhavJivrajani/kcd-bangalore/pkg/imperative"
-	"github.com/MadhavJivrajani/kcd-bangalore/pkg/utils"
+	"github.com/MadhavJivrajani/kcdctl/pkg/imperative"
+	"github.com/MadhavJivrajani/kcdctl/pkg/utils"
 	"github.com/spf13/cobra"
 )
 

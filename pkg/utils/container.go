@@ -20,7 +20,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/MadhavJivrajani/kcd-bangalore/pkg/core"
+	"github.com/MadhavJivrajani/kcdctl/pkg/core"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"

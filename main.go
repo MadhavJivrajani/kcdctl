@@ -16,7 +16,7 @@ limitations under the License.
 
 package main
 
-import "github.com/MadhavJivrajani/kcd-bangalore/cmd"
+import "github.com/MadhavJivrajani/kcdctl/cmd"
 
 func main() {
 	cmd.Execute()

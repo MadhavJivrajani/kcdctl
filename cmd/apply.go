@@ -23,10 +23,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/MadhavJivrajani/kcd-bangalore/pkg/core"
-	"github.com/MadhavJivrajani/kcd-bangalore/pkg/declarative"
-	"github.com/MadhavJivrajani/kcd-bangalore/pkg/imperative"
-	"github.com/MadhavJivrajani/kcd-bangalore/pkg/utils"
+	"github.com/MadhavJivrajani/kcdctl/pkg/core"
+	"github.com/MadhavJivrajani/kcdctl/pkg/declarative"
+	"github.com/MadhavJivrajani/kcdctl/pkg/imperative"
+	"github.com/MadhavJivrajani/kcdctl/pkg/utils"
 	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
 )

@@ -22,9 +22,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/MadhavJivrajani/kcd-bangalore/pkg/core"
-	"github.com/MadhavJivrajani/kcd-bangalore/pkg/notifier"
-	"github.com/MadhavJivrajani/kcd-bangalore/pkg/utils"
+	"github.com/MadhavJivrajani/kcdctl/pkg/core"
+	"github.com/MadhavJivrajani/kcdctl/pkg/notifier"
+	"github.com/MadhavJivrajani/kcdctl/pkg/utils"
 	"github.com/docker/docker/client"
 )
 

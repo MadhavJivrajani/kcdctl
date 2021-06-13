@@ -1,3 +1,3 @@
-module github.com/MadhavJivrajani/kcd-bangalore/examples
+module github.com/MadhavJivrajani/kcdctl/examples
 
 go 1.16

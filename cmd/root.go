@@ -30,7 +30,7 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "kcd-bangalore",
+	Use:   "kcdctl",
 	Short: "A tool to help demo concepts of imperative and declarative systems as part of the KCD Bangalore Conference",
 }
 
@@ -43,7 +43,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.kcd-bangalore.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.kcdctl.yaml)")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -56,9 +56,9 @@ func initConfig() {
 		home, err := homedir.Dir()
 		cobra.CheckErr(err)
 
-		// Search config in home directory with name ".kcd-bangalore" (without extension).
+		// Search config in home directory with name ".kcdctl" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".kcd-bangalore")
+		viper.SetConfigName(".kcdctl")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match

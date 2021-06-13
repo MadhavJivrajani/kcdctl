@@ -1,4 +1,4 @@
-module github.com/MadhavJivrajani/kcd-bangalore/loadbalancer
+module github.com/MadhavJivrajani/kcdctl/loadbalancer
 
 go 1.16
 
