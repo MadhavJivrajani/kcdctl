@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/MadhavJivrajani/kcdctl/pkg/utils"
 	"github.com/spf13/cobra"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -31,7 +32,7 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "kcdctl",
-	Short: "A tool to help demo concepts of imperative and declarative systems as part of the KCD Bangalore Conference",
+	Short: fmt.Sprintf("%s\n\nA tool to help demo imperative and declarative systems as part of the KCD Bangalore Conference", utils.Ascii),
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
