@@ -40,6 +40,17 @@ var (
 
 const networkName = "kcd-bangalore-demo"
 
+func main() {
+	containerPort = os.Getenv("containerPort")
+	targetPort = os.Getenv("targetPort")
+	serviceSelector = os.Getenv("serviceSelector")
+	serviceSelectorValue = os.Getenv("serviceSelectorValue")
+
+	log.Println(containerPort, targetPort, serviceSelector, serviceSelectorValue)
+
+	startLoadBalancer()
+}
+
 func discoverServices() ([]string, error) {
 	cli, err := client.NewEnvClient()
 	if err != nil {
@@ -103,15 +114,4 @@ func startLoadBalancer() {
 	http.HandleFunc("/", serve)
 	log.Println("lisening on port:", containerPort)
 	log.Fatal(http.ListenAndServe(":"+containerPort, nil))
-}
-
-func main() {
-	containerPort = os.Getenv("containerPort")
-	targetPort = os.Getenv("targetPort")
-	serviceSelector = os.Getenv("serviceSelector")
-	serviceSelectorValue = os.Getenv("serviceSelectorValue")
-
-	log.Println(containerPort, targetPort, serviceSelector, serviceSelectorValue)
-
-	startLoadBalancer()
 }

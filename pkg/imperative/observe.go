@@ -50,6 +50,7 @@ func StartObserving(ctx context.Context, cli *client.Client, eventsToRegister []
 		}
 		diff := desired.DesiredNum - currentState.CurrentNum
 		if diff != 0 {
+			reconciled = false
 			log.Println("Current diff in terms of replicas:", diff)
 			log.Println("Awaiting reconcilitation...")
 		} else {

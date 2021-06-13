@@ -5,7 +5,7 @@ loadBalancer:
   containerPort: "8080"
   targetPort: "8080"
 spec:
-  replicas: 3
+  replicas: 2
   template:
     image: "maddyoii/kcd-blr-example:latest"
     name: "kcd-bangalore-test"
