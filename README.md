@@ -5,8 +5,9 @@
 
 This is the source code for the demo done as part of the talk "Imperative, Declarative and Kubernetes" at the [Kubernetes Community Days, Bengaluru 2021](https://community.cncf.io/events/details/cncf-kcd-bengaluru-presents-kubernetes-community-days-bengaluru) conferernce.
 
-## Slides
-The slides used for the talk can be found [here](https://speakerdeck.com/madhavjivrajani/imperative-declarative-and-kubernetes).
+## Talk and Slides
+- The talk recording can be found [here](https://www.youtube.com/watch?v=hB3H4_YRnFc).
+- The slides used for the talk can be found [here](https://speakerdeck.com/madhavjivrajani/imperative-declarative-and-kubernetes).
 
 ## Pre-requisites
 To run the demo, you will need the following installed:
