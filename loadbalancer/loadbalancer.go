@@ -51,6 +51,25 @@ func main() {
 	startLoadBalancer()
 }
 
+func startLoadBalancer() {
+	http.HandleFunc("/", serve)
+	log.Println("lisening on port:", containerPort)
+	log.Fatal(http.ListenAndServe(":"+containerPort, nil))
+}
+
+func serve(w http.ResponseWriter, req *http.Request) {
+	services, err := discoverServices()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	rand.Seed(time.Now().Unix())
+	// pick a service randomly, can be done in a much
+	// better manner.
+	serviceToProxyTo := services[rand.Intn(len(services))]
+	proxyAndRespond(w, req, serviceToProxyTo)
+}
+
 func discoverServices() ([]string, error) {
 	cli, err := client.NewEnvClient()
 	if err != nil {
@@ -94,24 +113,8 @@ func proxyAndRespond(w http.ResponseWriter, req *http.Request, toSendTo string) 
 	}
 
 	// send response back to client.
-	fmt.Fprintf(w, string(body))
-}
-
-func serve(w http.ResponseWriter, req *http.Request) {
-	services, err := discoverServices()
+	_, err = fmt.Fprint(w, string(body))
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	rand.Seed(time.Now().Unix())
-	// pick a service randomly, can be done in a much
-	// better manner.
-	serviceToProxyTo := services[rand.Intn(len(services))]
-	proxyAndRespond(w, req, serviceToProxyTo)
-}
-
-func startLoadBalancer() {
-	http.HandleFunc("/", serve)
-	log.Println("lisening on port:", containerPort)
-	log.Fatal(http.ListenAndServe(":"+containerPort, nil))
 }
